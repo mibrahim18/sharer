@@ -43,8 +43,7 @@ async function loadSecrets() {
     process.env.AZURESTORAGEACCOUNTNAME = accountNameSecret.value;
     process.env.AZURESTORAGEACCOUNTKEY = accountKeySecret.value;
   } catch (error) {
-    // Handle errors loading secrets if necessary
-    // Optionally log or throw an error
+    console.log(error);
   }
 }
 
