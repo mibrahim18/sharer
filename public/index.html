@@ -8,16 +8,76 @@
       rel="stylesheet"
     />
     <title>Upload File</title>
+    <style>
+      body {
+        background-color: #f8f9fa; /* Light gray background */
+        color: #343a40; /* Darker text color */
+      }
+      h1 {
+        margin-bottom: 30px; /* Spacing below the heading */
+      }
+      .alert {
+        display: none; /* Hide alerts initially */
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Upload a File (1GB Limit) & share for 24 hrs</h1>
-      <form action="/upload" method="POST" enctype="multipart/form-data">
+    <div class="container mt-5">
+      <h1 class="text-center">Upload a File (1GB Limit) & Share for 24 hrs</h1>
+      <form
+        id="uploadForm"
+        action="/upload"
+        method="POST"
+        enctype="multipart/form-data"
+      >
         <div class="mb-3">
           <input type="file" name="file" class="form-control" required />
         </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
+        <button type="submit" class="btn btn-primary btn-block">Upload</button>
       </form>
+      <div id="successAlert" class="alert alert-success mt-3" role="alert">
+        File uploaded successfully! Here is your download link:
+        <a id="downloadLink" href="#" target="_blank"></a>
+      </div>
+      <div id="errorAlert" class="alert alert-danger mt-3" role="alert">
+        Error uploading file. Please try again.
+      </div>
     </div>
+
+    <script>
+      const form = document.getElementById("uploadForm");
+      const successAlert = document.getElementById("successAlert");
+      const errorAlert = document.getElementById("errorAlert");
+      const downloadLink = document.getElementById("downloadLink");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Prevent the default form submission
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch(form.action, {
+            method: form.method,
+            body: formData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            downloadLink.href = data.fileUrl;
+            downloadLink.textContent = data.fileUrl; // Set the link text
+            successAlert.style.display = "block"; // Show success alert
+            errorAlert.style.display = "none"; // Hide error alert
+            form.reset(); // Reset the form
+          } else {
+            throw new Error("Upload failed");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          successAlert.style.display = "none"; // Hide success alert
+          errorAlert.style.display = "block"; // Show error alert
+        }
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
