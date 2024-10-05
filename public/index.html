@@ -36,8 +36,13 @@
         <button type="submit" class="btn btn-primary btn-block">Upload</button>
       </form>
       <div id="successAlert" class="alert alert-success mt-3" role="alert">
-        File uploaded successfully! Here is your download link:
-        <a id="downloadLink" href="#" target="_blank"></a>
+        File uploaded successfully! Your download link is a click away:
+        <div>
+          <a id="downloadLink" href="#" target="_blank">Here</a>
+          <button id="copyButton" class="btn btn-secondary btn-sm">
+            Copy & Share
+          </button>
+        </div>
       </div>
       <div id="errorAlert" class="alert alert-danger mt-3" role="alert">
         Error uploading file. Please try again.
@@ -49,6 +54,7 @@
       const successAlert = document.getElementById("successAlert");
       const errorAlert = document.getElementById("errorAlert");
       const downloadLink = document.getElementById("downloadLink");
+      const copyButton = document.getElementById("copyButton");
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault(); // Prevent the default form submission
@@ -63,7 +69,6 @@
           if (response.ok) {
             const data = await response.json();
             downloadLink.href = data.fileUrl;
-            downloadLink.textContent = data.fileUrl; // Set the link text
             successAlert.style.display = "block"; // Show success alert
             errorAlert.style.display = "none"; // Hide error alert
             form.reset(); // Reset the form
@@ -75,6 +80,18 @@
           successAlert.style.display = "none"; // Hide success alert
           errorAlert.style.display = "block"; // Show error alert
         }
+      });
+
+      // Copy the link to the clipboard
+      copyButton.addEventListener("click", () => {
+        navigator.clipboard
+          .writeText(downloadLink.href)
+          .then(() => {
+            alert("Download link copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+          });
       });
     </script>
 
