@@ -42,6 +42,8 @@ async function loadSecrets() {
     process.env.AZURESTORAGECONNECTIONSTRING = connectionStringSecret.value;
     process.env.AZURESTORAGEACCOUNTNAME = accountNameSecret.value;
     process.env.AZURESTORAGEACCOUNTKEY = accountKeySecret.value;
+
+    console.log("Secrets loaded successfully.");
   } catch (error) {
     console.error("Error loading secrets from Azure Key Vault:", error.message);
   }
@@ -55,14 +57,19 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.error("No file uploaded");
     return res.status(400).json({
       message: "No file uploaded.",
-      error: "File input is missing.",
+      error: "Please select a file and try again.",
     });
   }
 
   try {
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-      process.env.AZURESTORAGECONNECTIONSTRING
-    );
+    const connectionString = process.env.AZURESTORAGECONNECTIONSTRING;
+
+    if (!connectionString) {
+      throw new Error("Azure Storage connection string is not defined.");
+    }
+
+    const blobServiceClient =
+      BlobServiceClient.fromConnectionString(connectionString);
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
     console.log("Uploading file:", req.file.originalname);
@@ -92,40 +99,22 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     res.json({ fileUrl });
   } catch (error) {
-    console.error("Error uploading file:", error); // Log the full error object
+    console.error("Error uploading file:", error);
 
-    // Check for specific error cases
-    let responseMessage = {
-      message: "Error uploading file to Azure Blob Storage.",
-      error: error.message || error.toString(),
-      stack: error.stack || "No stack available", // Log the stack trace for debugging
-    };
-
-    if (error.name === "RestError") {
-      console.error("Azure SDK Error:", error.details);
-      responseMessage = {
-        message: "Azure Storage upload failed.",
-        details: error.details || "Unknown error.",
-      };
-      return res.status(500).json(responseMessage);
-    } else if (error.code === "ENOTFOUND") {
-      console.error("Network Error:", error);
-      responseMessage = {
-        message: "Network error while connecting to Azure Storage.",
-        details: error.message || "Unable to reach storage service.",
-      };
-      return res.status(500).json(responseMessage);
-    } else if (error.message && error.message.includes("Key Vault")) {
-      console.error("Key Vault Error:", error);
-      responseMessage = {
-        message: "Error retrieving secrets from Azure Key Vault.",
-        details: error.message,
-      };
-      return res.status(500).json(responseMessage);
+    let errorMessage = "Error uploading file to Azure Blob Storage.";
+    if (error.message.includes("startsWith")) {
+      errorMessage =
+        "Azure Storage connection string may be incorrectly formatted.";
+    } else if (error.message.includes("Key Vault")) {
+      errorMessage = "Error retrieving secrets from Azure Key Vault.";
     }
 
-    // General error handling
-    res.status(500).json(responseMessage);
+    // Send detailed error information to the frontend
+    res.status(500).json({
+      message: errorMessage,
+      error: error.message || error.toString(),
+      stack: error.stack || "No stack available",
+    });
   }
 });
 
