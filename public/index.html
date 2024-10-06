@@ -76,7 +76,7 @@
   <body>
     <header>
       <h1>File Upload</h1>
-      <p>Share your files with ease!</p>
+      <p>Share your files with ease! (Limit: 1GB)</p>
     </header>
 
     <form id="uploadForm" enctype="multipart/form-data">
@@ -90,6 +90,8 @@
     <button id="copyButton" style="display: none">Copy Download Link</button>
 
     <script>
+      const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
+
       document
         .getElementById("uploadForm")
         .addEventListener("submit", async function (event) {
@@ -104,7 +106,17 @@
             return;
           }
 
-          formData.append("file", fileInput.files[0]);
+          const file = fileInput.files[0];
+
+          // Check if file size exceeds 1GB
+          if (file.size > MAX_FILE_SIZE) {
+            document.getElementById("statusMessage").innerText =
+              "File size exceeds the 1GB limit.";
+            document.getElementById("statusMessage").classList.add("error");
+            return;
+          }
+
+          formData.append("file", file);
 
           try {
             const response = await fetch("/upload", {
