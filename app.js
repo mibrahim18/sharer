@@ -52,6 +52,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   const containerName = "uploads";
 
   if (!req.file) {
+    console.error("No file uploaded");
     return res.status(400).send("No file uploaded.");
   }
 
@@ -61,32 +62,64 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     );
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
-    // Upload the file
+    console.log("Uploading file:", req.file.originalname);
+
     const blobName = req.file.originalname;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
     await blockBlobClient.upload(req.file.buffer, req.file.size);
 
-    // Generate a unique, time-limited link
     const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 24); // expiry time to 24 hours
+    expiryDate.setHours(expiryDate.getHours() + 24);
 
     const sasOptions = {
       containerName,
       blobName,
       expiresOn: expiryDate,
-      permissions: BlobSASPermissions.parse("r"), // Read permission
+      permissions: BlobSASPermissions.parse("r"),
     };
 
     const sasToken = generateBlobSASQueryParameters(
       sasOptions,
       blockBlobClient.credential
     ).toString();
-    const fileUrl = `${blockBlobClient.url}?${sasToken}`;
 
-    res.json({ fileUrl }); // Return the URL to the user
+    const fileUrl = `${blockBlobClient.url}?${sasToken}`;
+    console.log("File uploaded successfully, URL:", fileUrl);
+
+    res.json({ fileUrl });
   } catch (error) {
-    res.status(500).send("Error uploading file");
+    console.error("Error uploading file:", error.message || error); // More specific logging
+
+    // Check for specific error cases
+    if (error.name === "RestError") {
+      // This is an Azure SDK-specific error type
+      console.error("Azure SDK Error:", error.details);
+      return res.status(500).json({
+        message: "Azure Storage upload failed.",
+        details: error.details || "Unknown error.",
+      });
+    } else if (error.code === "ENOTFOUND") {
+      // Network error (e.g., cannot connect to storage account)
+      console.error("Network Error:", error);
+      return res.status(500).json({
+        message: "Network error while connecting to Azure Storage.",
+        details: error.message || "Unable to reach storage service.",
+      });
+    } else if (error.message && error.message.includes("Key Vault")) {
+      // Key Vault error (e.g., failed to retrieve secrets)
+      console.error("Key Vault Error:", error);
+      return res.status(500).json({
+        message: "Error retrieving secrets from Azure Key Vault.",
+        details: error.message,
+      });
+    }
+
+    // General error handling
+    res.status(500).json({
+      message: "Error uploading file to Azure Blob Storage.",
+      error: error.message || error.toString(),
+    });
   }
 });
 
