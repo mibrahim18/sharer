@@ -70,7 +70,7 @@
               document.getElementById("fileLink").href = data.fileUrl; // Link to the uploaded file
             } else {
               // Display the error message
-              throw new Error(data.message || "Unknown error occurred.");
+              throw new Error(data.error || "Unknown error occurred.");
             }
           } catch (error) {
             console.error("Error uploading file:", error);
