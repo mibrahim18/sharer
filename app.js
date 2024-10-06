@@ -43,7 +43,7 @@ async function loadSecrets() {
     process.env.AZURESTORAGEACCOUNTNAME = accountNameSecret.value;
     process.env.AZURESTORAGEACCOUNTKEY = accountKeySecret.value;
   } catch (error) {
-    console.log(error);
+    console.error("Error loading secrets from Azure Key Vault:", error.message);
   }
 }
 
@@ -127,5 +127,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 // Load secrets and start the application
 loadSecrets().then(() => {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT);
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 });
