@@ -13,9 +13,10 @@ const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB limit
-}); // Use memory storage for file uploads
+});
 
 app.use(express.static(path.join(__dirname, "public")));
+console.log("new");
 
 // Azure Key Vault configuration
 const keyVaultName = process.env.KEY_VAULT_NAME;
@@ -100,6 +101,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   } catch (error) {
     console.error("Error uploading file:", error);
 
+    // Send a detailed error message and stack trace to the frontend
     let errorMessage = "Error uploading file to Azure Blob Storage.";
 
     if (error.message.includes("startsWith")) {
@@ -111,11 +113,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       errorMessage = "Issue with accessing Azure Key Vault.";
     }
 
-    // Send the error message and stack trace to the frontend
     res.status(500).json({
       message: errorMessage,
-      error: error.message || "Unknown error",
-      stack: error.stack || "No stack trace available",
+      error: error.message,
+      stack: error.stack,
     });
   }
 });
