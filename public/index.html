@@ -50,8 +50,19 @@
           event.preventDefault(); // Prevent form from submitting the traditional way
 
           const fileInput = document.getElementById("fileInput");
+          const selectedFile = fileInput.files[0];
+
+          // Check if a file is selected
+          if (!selectedFile) {
+            console.error("No file selected.");
+            document.getElementById("errorAlert").textContent =
+              "Please select a file to upload.";
+            document.getElementById("errorAlert").classList.remove("d-none");
+            return; // Exit if no file is selected
+          }
+
           const formData = new FormData();
-          formData.append("file", fileInput.files[0]);
+          formData.append("file", selectedFile);
 
           try {
             const response = await fetch("/upload", {
@@ -63,6 +74,7 @@
             if (!response.ok) {
               // Attempt to parse the JSON response
               const errorData = await response.json();
+              console.error("Server responded with an error:", errorData);
               throw new Error(errorData.error || "Unknown error occurred.");
             }
 
@@ -77,19 +89,13 @@
           } catch (error) {
             console.error("Error uploading file:", error);
 
-            // Check if the error is an instance of the Error object
-            if (error instanceof Error) {
-              // Show the error message in the errorAlert div
-              const errorAlert = document.getElementById("errorAlert");
-              errorAlert.textContent = `Error uploading file: ${error.message}`;
-              errorAlert.classList.remove("d-none");
-            } else {
-              // Handle unexpected errors
-              console.error("Unexpected error:", error);
-              const errorAlert = document.getElementById("errorAlert");
-              errorAlert.textContent = `Unexpected error occurred: ${error}`;
-              errorAlert.classList.remove("d-none");
-            }
+            // Show the error message in the errorAlert div
+            const errorAlert = document.getElementById("errorAlert");
+            errorAlert.textContent = `Error uploading file: ${error.message}`;
+            errorAlert.classList.remove("d-none");
+
+            // Log additional details for debugging
+            console.error("Additional error details:", error);
           }
         });
     </script>
