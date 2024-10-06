@@ -92,7 +92,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     res.json({ fileUrl });
   } catch (error) {
-    console.error("Error uploading file:", error.message || error);
+    console.error("Error uploading file:", error); // Log the full error object
 
     // Check for specific error cases
     let responseMessage = {
