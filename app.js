@@ -119,6 +119,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     res.status(500).json({
       message: "Error uploading file to Azure Blob Storage.",
       error: error.message || error.toString(),
+      stack: error.stack || "No stack available", // Log the stack trace for debugging
     });
   }
 });
