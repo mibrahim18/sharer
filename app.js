@@ -123,7 +123,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
 // Load secrets and start the application
 loadSecrets().then(() => {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 50055;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
