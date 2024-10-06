@@ -88,6 +88,31 @@
       #copyButton:hover {
         background-color: #007bb5;
       }
+      /* Spinner styles */
+      #spinner {
+        display: none; /* Hidden by default */
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000; /* On top of other elements */
+      }
+      .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border: 0.3em solid #ccc; /* Light grey */
+        border-top: 0.3em solid #4caf50; /* Green */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -111,6 +136,9 @@
     <div id="errorDetails" class="error"></div>
     <div id="downloadLink"></div>
     <button id="copyButton" style="display: none">Copy Download Link</button>
+
+    <!-- Spinner element -->
+    <div id="spinner" class="spinner-border"></div>
 
     <script>
       const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
@@ -141,6 +169,10 @@
 
           formData.append("file", file);
 
+          // Show the spinner
+          const spinner = document.getElementById("spinner");
+          spinner.style.display = "block";
+
           try {
             const response = await fetch("/upload", {
               method: "POST",
@@ -148,6 +180,9 @@
             });
 
             const result = await response.json();
+
+            // Hide the spinner
+            spinner.style.display = "none";
 
             if (!response.ok) {
               throw new Error(result.message || "Unknown error occurred.");
@@ -181,6 +216,9 @@
               });
             };
           } catch (error) {
+            // Hide the spinner
+            spinner.style.display = "none";
+
             document.getElementById("statusMessage").innerText =
               "Error uploading file:";
             document.getElementById("statusMessage").classList.add("error");
