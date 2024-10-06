@@ -54,7 +54,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   const containerName = "uploads";
 
   if (!req.file) {
-    console.error("No file uploaded");
     return res.status(400).json({
       message: "No file uploaded.",
       error: "Please select a file and try again.",
@@ -102,18 +101,21 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.error("Error uploading file:", error);
 
     let errorMessage = "Error uploading file to Azure Blob Storage.";
+
     if (error.message.includes("startsWith")) {
       errorMessage =
-        "Azure Storage connection string may be incorrectly formatted.";
+        "Azure Storage connection string is not correctly formatted.";
     } else if (error.message.includes("Key Vault")) {
       errorMessage = "Error retrieving secrets from Azure Key Vault.";
+    } else if (error.message.includes("getSecret")) {
+      errorMessage = "Issue with accessing Azure Key Vault.";
     }
 
-    // Send detailed error information to the frontend
+    // Send the error message and stack trace to the frontend
     res.status(500).json({
       message: errorMessage,
-      error: error.message || error.toString(),
-      stack: error.stack || "No stack available",
+      error: error.message || "Unknown error",
+      stack: error.stack || "No stack trace available",
     });
   }
 });
