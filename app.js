@@ -53,7 +53,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
   if (!req.file) {
     console.error("No file uploaded");
-    return res.status(400).send("No file uploaded.");
+    return res.status(400).json({
+      message: "No file uploaded.",
+      error: "File input is missing.",
+    });
   }
 
   try {
@@ -89,38 +92,40 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     res.json({ fileUrl });
   } catch (error) {
-    console.error("Error uploading file:", error.message || error); // More specific logging
+    console.error("Error uploading file:", error.message || error);
 
     // Check for specific error cases
-    if (error.name === "RestError") {
-      // This is an Azure SDK-specific error type
-      console.error("Azure SDK Error:", error.details);
-      return res.status(500).json({
-        message: "Azure Storage upload failed.",
-        details: error.details || "Unknown error.",
-      });
-    } else if (error.code === "ENOTFOUND") {
-      // Network error (e.g., cannot connect to storage account)
-      console.error("Network Error:", error);
-      return res.status(500).json({
-        message: "Network error while connecting to Azure Storage.",
-        details: error.message || "Unable to reach storage service.",
-      });
-    } else if (error.message && error.message.includes("Key Vault")) {
-      // Key Vault error (e.g., failed to retrieve secrets)
-      console.error("Key Vault Error:", error);
-      return res.status(500).json({
-        message: "Error retrieving secrets from Azure Key Vault.",
-        details: error.message,
-      });
-    }
-
-    // General error handling
-    res.status(500).json({
+    let responseMessage = {
       message: "Error uploading file to Azure Blob Storage.",
       error: error.message || error.toString(),
       stack: error.stack || "No stack available", // Log the stack trace for debugging
-    });
+    };
+
+    if (error.name === "RestError") {
+      console.error("Azure SDK Error:", error.details);
+      responseMessage = {
+        message: "Azure Storage upload failed.",
+        details: error.details || "Unknown error.",
+      };
+      return res.status(500).json(responseMessage);
+    } else if (error.code === "ENOTFOUND") {
+      console.error("Network Error:", error);
+      responseMessage = {
+        message: "Network error while connecting to Azure Storage.",
+        details: error.message || "Unable to reach storage service.",
+      };
+      return res.status(500).json(responseMessage);
+    } else if (error.message && error.message.includes("Key Vault")) {
+      console.error("Key Vault Error:", error);
+      responseMessage = {
+        message: "Error retrieving secrets from Azure Key Vault.",
+        details: error.message,
+      };
+      return res.status(500).json(responseMessage);
+    }
+
+    // General error handling
+    res.status(500).json(responseMessage);
   }
 });
 
