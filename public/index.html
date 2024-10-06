@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>File Upload</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn-icons-png.flaticon.com/512/1148/1148040.png"
+    />
+    <!-- Cloud favicon -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <!-- Font Awesome for icons -->
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -18,6 +29,12 @@
       }
       h1 {
         color: #4caf50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      h1 i {
+        margin-right: 10px; /* Space between icon and title */
       }
       form {
         display: flex;
@@ -75,7 +92,10 @@
   </head>
   <body>
     <header>
-      <h1>File Upload</h1>
+      <h1>
+        <i class="fas fa-cloud-upload-alt"></i> File Upload
+        <!-- Second cloud upload icon -->
+      </h1>
       <p>Share your files with ease! (Limit: 1GB)</p>
     </header>
 
