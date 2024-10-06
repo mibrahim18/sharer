@@ -22,6 +22,9 @@
         white-space: pre-wrap;
         word-wrap: break-word;
       }
+      #downloadLink {
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -33,6 +36,8 @@
 
     <h3 id="statusMessage"></h3>
     <div id="errorDetails" class="error"></div>
+    <div id="downloadLink"></div>
+    <!-- Container for the download link -->
 
     <script>
       document
@@ -66,6 +71,16 @@
               "File uploaded successfully!";
             document.getElementById("statusMessage").classList.add("success");
             document.getElementById("errorDetails").innerText = "";
+
+            // Create and display the download link
+            const downloadLinkContainer =
+              document.getElementById("downloadLink");
+            downloadLinkContainer.innerHTML = ""; // Clear previous links
+            const downloadLink = document.createElement("a");
+            downloadLink.href = result.fileUrl; // Use the URL from the server response
+            downloadLink.innerText = "Download your file"; // Set link text
+            downloadLink.target = "_blank"; // Open link in a new tab
+            downloadLinkContainer.appendChild(downloadLink); // Add link to the container
           } catch (error) {
             document.getElementById("statusMessage").innerText =
               "Error uploading file:";
