@@ -3,98 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <title>Upload File</title>
-    <style>
-      body {
-        background-color: #f8f9fa; /* Light gray background */
-        color: #343a40; /* Darker text color */
-      }
-      h1 {
-        margin-bottom: 30px; /* Spacing below the heading */
-      }
-      .alert {
-        display: none; /* Hide alerts initially */
-      }
-    </style>
   </head>
   <body>
-    <div class="container mt-5">
-      <h1 class="text-center">Upload a File (1GB Limit) & Share for 24 hrs</h1>
-      <form
-        id="uploadForm"
-        action="/upload"
-        method="POST"
-        enctype="multipart/form-data"
-      >
+    <div class="container">
+      <h1 class="mt-5">Upload a File</h1>
+      <form id="uploadForm" enctype="multipart/form-data">
         <div class="mb-3">
-          <input type="file" name="file" class="form-control" required />
+          <label for="fileInput" class="form-label">Choose file</label>
+          <input
+            class="form-control"
+            type="file"
+            id="fileInput"
+            name="file"
+            required
+          />
         </div>
-        <button type="submit" class="btn btn-primary btn-block">Upload</button>
+        <button type="submit" class="btn btn-primary">Upload</button>
       </form>
-      <div id="successAlert" class="alert alert-success mt-3" role="alert">
-        File uploaded successfully! Your download link is a click away:
-        <div>
-          <a id="downloadLink" href="#" target="_blank">Here</a>
-          <button id="copyButton" class="btn btn-secondary btn-sm">
-            Copy & Share
-          </button>
-        </div>
+
+      <!-- Success Message -->
+      <div
+        id="successAlert"
+        class="alert alert-success mt-3 d-none"
+        role="alert"
+      >
+        File uploaded successfully.
+        <a href="#" id="fileLink" target="_blank">Click here to view the file</a
+        >.
       </div>
-      <div id="errorAlert" class="alert alert-danger mt-3" role="alert">
+
+      <!-- Error Message -->
+      <div id="errorAlert" class="alert alert-danger mt-3 d-none" role="alert">
         Error uploading file. Please try again.
       </div>
     </div>
 
     <script>
-      const form = document.getElementById("uploadForm");
-      const successAlert = document.getElementById("successAlert");
-      const errorAlert = document.getElementById("errorAlert");
-      const downloadLink = document.getElementById("downloadLink");
-      const copyButton = document.getElementById("copyButton");
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault(); // Prevent form from submitting the traditional way
 
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault(); // Prevent the default form submission
-        const formData = new FormData(form);
+          const fileInput = document.getElementById("fileInput");
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
 
-        try {
-          const response = await fetch(form.action, {
-            method: form.method,
-            body: formData,
-          });
+          try {
+            const response = await fetch("/upload", {
+              method: "POST",
+              body: formData,
+            });
 
-          if (response.ok) {
+            // Parse the JSON response
             const data = await response.json();
-            downloadLink.href = data.fileUrl;
-            successAlert.style.display = "block"; // Show success alert
-            errorAlert.style.display = "none"; // Hide error alert
-            form.reset(); // Reset the form
-          } else {
-            throw new Error("Upload failed");
+
+            if (response.ok) {
+              // Hide error message, show success message
+              document.getElementById("errorAlert").classList.add("d-none");
+              const successAlert = document.getElementById("successAlert");
+              successAlert.classList.remove("d-none");
+              document.getElementById("fileLink").href = data.fileUrl; // Link to the uploaded file
+            } else {
+              // Display the error message
+              throw new Error(data.message || "Unknown error occurred.");
+            }
+          } catch (error) {
+            console.error("Error uploading file:", error);
+
+            // Show the error message in the errorAlert div
+            const errorAlert = document.getElementById("errorAlert");
+            errorAlert.textContent = `Error uploading file: ${error.message}`;
+            errorAlert.classList.remove("d-none");
           }
-        } catch (error) {
-          console.error("Error:", error);
-          successAlert.style.display = "none"; // Hide success alert
-          errorAlert.style.display = "block"; // Show error alert
-        }
-      });
-
-      // Copy the link to the clipboard
-      copyButton.addEventListener("click", () => {
-        navigator.clipboard
-          .writeText(downloadLink.href)
-          .then(() => {
-            alert("Download link copied to clipboard!");
-          })
-          .catch((err) => {
-            console.error("Failed to copy: ", err);
-          });
-      });
+        });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
